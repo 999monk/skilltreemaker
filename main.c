@@ -1,23 +1,31 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "include/graph.h"
-#include "include/skilltree.h"
+#include "include/cli.h"
+#include "include/persist.h"
 
-int main(void) {
-    Graph *tree = skilltreeCreateDefault();
-    if (!tree) return 1;
+/*
+ * Uso:
+ *   ./skilltree              → arranca con árbol vacío
+ *   ./skilltree <archivo>    → carga el archivo y arranca la CLI
+ */
+int main(int argc, char *argv[]) {
+    Graph *g = NULL;
 
-    graphPrint(tree);
+    if (argc >= 2) {
+        g = persistLoad(argv[1]);
+        if (!g) {
+            fprintf(stderr, "No se pudo cargar \"%s\". Iniciando vacío.\n",
+                    argv[1]);
+        }
+    }
 
-    /* Demo: misma secuencia que el original */
-    graphUnlock(tree, 1);   /* vecino de 0 (Guerrero) → OK          */
-    graphUnlock(tree, 3);   /* vecino de 1, pero 1 no está desbloqueado aún → falla */
-    graphUnlock(tree, 8);   /* rama Magia: 7 no desbloqueado → falla */
-    graphUnlock(tree, 7);   /* vecino de 0 → OK                      */
-    graphUnlock(tree, 8);   /* vecino de 7, ahora sí → OK            */
+    if (!g) g = graphCreate(0);
+    if (!g) { fprintf(stderr, "Error al inicializar el grafo.\n"); return 1; }
 
-    graphPrint(tree);
+    cliRun(g);
 
-    graphFree(tree);
+    graphFree(g);
     return 0;
 }
