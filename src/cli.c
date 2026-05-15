@@ -83,23 +83,14 @@ static void printHelp(void) {
 /* ------------------------------------------------------------------ */
 
 static void cmdAdd(Graph *g, char *tokens[], int n) {
-    if (n < 2) { printf("Uso: add <nombre>\n"); return; }
+    if (n < 2) { printf("Usage: add <name>\n"); return; }
 
     char name[MAX_NAME];
     joinTokens(tokens, 1, n, name, MAX_NAME);
 
-    /* Pedir descripción interactivamente */
-    char desc[MAX_DESC];
-    printf("Descripción (Enter para dejar vacía): ");
-    fflush(stdout);
-    if (!fgets(desc, sizeof(desc), stdin)) desc[0] = '\0';
-    char *nl = strchr(desc, '\n');
-    if (nl) *nl = '\0';
-    if (desc[0] == '\0') strncpy(desc, "Sin descripcion.", MAX_DESC - 1);
-
-    int id = graphAddNode(g, name, desc);
+    int id = graphAddNode(g, name, "No description");
     if (id >= 0)
-        printf("Nodo creado: id=%d  \"%s\"\n", id, name);
+        printf("Created node: id=%d \"%s\"\n", id, name);
 }
 
 static void cmdDesc(Graph *g, char *tokens[], int n) {

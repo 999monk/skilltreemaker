@@ -5,56 +5,54 @@
 #include "include/cli.h"
 #include "include/persist.h"
 
-/*
- * Uso:
- *   ./skilltree              → arranca con árbol vacío
- *   ./skilltree <archivo>    → carga el archivo y arranca la CLI
- */
-static Graph *createInitialTree(void) {
-    printf("Ingresa el nombre del nodo raíz: ");
-    fflush(stdout);
-
-    char name[MAX_NAME];
-    if (!fgets(name, sizeof(name), stdin)) {
-        fprintf(stderr, "Error al leer nombre.\n");
-        return NULL;
-    }
-    char *nl = strchr(name, '\n');
-    if (nl) *nl = '\0';
-    if (name[0] == '\0') {
-        fprintf(stderr, "El nombre no puede estar vacío.\n");
-        return NULL;
-    }
-
-    printf("Ingresa la descripción (Enter para dejar vacía): ");
-    fflush(stdout);
-    char desc[MAX_DESC];
-    if (!fgets(desc, sizeof(desc), stdin)) desc[0] = '\0';
-    nl = strchr(desc, '\n');
-    if (nl) *nl = '\0';
-    if (desc[0] == '\0') strncpy(desc, "Nodo raíz", MAX_DESC - 1);
-
-    Graph *g = graphCreate(1);
-    if (!g) { fprintf(stderr, "Error al crear el grafo.\n"); return NULL; }
-
-    graphSetSkill(g, 0, name, desc);
-    printf("Árbol creado con nodo raíz: \"%s\"\n", name);
-    return g;
+static void printUsage(const char *prog) {
+    fprintf(stderr,
+        "Usage: %s <command> [options]\n\n"
+        "Commands:\n"
+        "  init <name>     Create new tree with root node named <name>\n"
+        "  <file>          Load tree from file\n\n"
+        "Options (when used with init):\n"
+        "  --save <file>   Save tree after creation\n",
+        prog);
 }
 
 int main(int argc, char *argv[]) {
-    Graph *g = NULL;
+    if (argc < 2) {
+        printUsage(argv[0]);
+        return 1;
+    }
 
-    if (argc >= 2) {
+    Graph *g = NULL;
+    const char *saveFile = NULL;
+
+    if (strcmp(argv[1], "init") == 0) {
+        if (argc < 3) {
+            fprintf(stderr, "init: missing root node name\n");
+            printUsage(argv[0]);
+            return 1;
+        }
+
+        g = graphCreate(1);
+        if (!g) { fprintf(stderr, "Error creating graph.\n"); return 1; }
+        graphSetSkill(g, 0, argv[2], "No description");
+
+        for (int i = 3; i < argc; i++) {
+            if (strcmp(argv[i], "--save") == 0) {
+                if (i + 1 < argc) saveFile = argv[++i];
+            }
+        }
+    } else {
         g = persistLoad(argv[1]);
         if (!g) {
-            fprintf(stderr, "No se pudo cargar \"%s\". Creando nuevo árbol.\n",
-                    argv[1]);
+            fprintf(stderr, "Error: could not load \"%s\"\n", argv[1]);
+            return 1;
         }
     }
 
-    if (!g) g = createInitialTree();
-    if (!g) { fprintf(stderr, "Error al inicializar el grafo.\n"); return 1; }
+    if (saveFile) {
+        persistSave(g, saveFile);
+        printf("Saved to \"%s\"\n", saveFile);
+    }
 
     cliRun(g);
 
