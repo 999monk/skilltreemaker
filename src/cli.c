@@ -214,8 +214,11 @@ static Graph *cmdReset(Graph *g) {
     if (!fgets(resp, sizeof(resp), stdin)) return g;
     if (resp[0] == 's' || resp[0] == 'S') {
         graphFree(g);
-        g = graphCreate(0);
-        printf("Árbol reiniciado.\n");
+        g = graphCreate(1);
+        if (g) {
+            graphSetSkill(g, 0, "Raíz", "Nodo raíz");
+            printf("Árbol reiniciado.\n");
+        }
     }
     return g;
 }
