@@ -1,0 +1,27 @@
+# Binarios y objetos
+*.o
+*.a
+*.so
+*.out
+skilltree
+
+# Dependencias generadas (compile_commands, etc.)
+compile_commands.json
+.cache/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Valgrind / profiling
+vgcore.*
+gmon.out
+perf.data*
+
+# Build dirs alternativos
+build/
+dist/
